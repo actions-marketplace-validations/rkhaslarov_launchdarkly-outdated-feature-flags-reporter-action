@@ -1,9 +1,9 @@
 import axios from 'axios'
 import * as core from '@actions/core'
 import { FeatureFlag } from '../types'
-import { formatDistance } from 'date-fns'
+import { toFeatureFlagDto } from '../dto'
 
-export interface BlockMessage {
+type BlockMessage = {
     username: string
     icon_emoji: string
     blocks: object[]
@@ -26,16 +26,10 @@ function groupFeatureFlagsByMaintainerTeam(
     )
 }
 
-function formatFeatureFlag(
-    featureFlag: FeatureFlag,
-    options: { url: string }
-): string {
-    const createdDate = new Date(featureFlag.creationDate)
-    const distance = formatDistance(createdDate, new Date(), {
-        addSuffix: true
-    })
+function formatFeatureFlag(featureFlag: FeatureFlag): string {
+    const dto = toFeatureFlagDto(featureFlag)
 
-    return `\n📌 <${options.url}${featureFlag.key}|${featureFlag.key}> | ${distance}`
+    return `\n📌 <${dto.link}|${dto.key}> | ${dto.createdAgo}`
 }
 
 function formatMaintainerTeam(maintainerTeam: string): string {
@@ -43,13 +37,12 @@ function formatMaintainerTeam(maintainerTeam: string): string {
 }
 
 export function formatFeatureFlags(
-    groupedFeatureFlags: Record<string, FeatureFlag[]>,
-    options: { url: string }
+    groupedFeatureFlags: Record<string, FeatureFlag[]>
 ): object[] {
     return Object.keys(groupedFeatureFlags).map((maintainerTeam: string) => {
         const text = formatMaintainerTeam(maintainerTeam).concat(
             groupedFeatureFlags[maintainerTeam]
-                .map(featureFlag => formatFeatureFlag(featureFlag, options))
+                .map(featureFlag => formatFeatureFlag(featureFlag))
                 .join('')
         )
 
@@ -101,20 +94,24 @@ export function formatSlackMessage(
 
 export const slackReport = {
     async run(featureFlags: FeatureFlag[]) {
-        const slackWebhook: string = core.getInput('slack-webhook')
-        const projectKey: string = core.getInput('project-key')
-        const environment: string = core.getInput('environment-key')
+        const webhookUrl: string = core.getInput('webhook-url')
 
-        const url = `https://app.launchdarkly.com/${projectKey}/${environment}/features/`
+        if (!webhookUrl) {
+            core.error(
+                'webhook-url input is not provided, skipping Slack report'
+            )
+            return
+        }
+
         const groupedFeatureFlags =
             groupFeatureFlagsByMaintainerTeam(featureFlags)
-        const blocks = formatFeatureFlags(groupedFeatureFlags, { url })
+        const blocks = formatFeatureFlags(groupedFeatureFlags)
         const message = formatSlackMessage(blocks, featureFlags.length)
 
         core.info(
             `Sending message to Slack webhook: ${JSON.stringify(message)}`
         )
 
-        await axios.post(slackWebhook, message)
+        await axios.post(webhookUrl, message)
     }
 }

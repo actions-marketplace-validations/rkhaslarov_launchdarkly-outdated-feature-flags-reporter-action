@@ -18,24 +18,41 @@ inputs:
   environment-key:
     description: 'Launch Darkly Project Environment'
     required: true
+  rules-config:
+    description: |
+      Rules configuration in YAML format. Each rule can be enabled/disabled and configured with specific parameters.
+      Example:
+        min-age:
+          days: 30
+        exclude-tags:
+          tags: ['MANUAL_REVIEW']
+        temporary-only: true
+        boolean-only: true
+        unused: true
+        default-only: true
+    required: true
+    default: |
+      min-age:
+        days: 30
+      exclude-tags:
+        tags: ['MANUAL_REVIEW']
+      temporary-only: true
+      boolean-only: true
+      unused: true
+      default-only: true
   maintainer-teams:
     description: 'Maintainer teams with assigned feature flags in Launch Darkly'
     required: false
-  excluded-tags:
-    description: 'Tags that should be filtered out in the analysis'
-    required: false
-  threshold:
-    description: 'Indicates that this variable pertains to a threshold related to feature flags being considered outdated'
-    required: false
-    default: 30
   report-type:
-    description: 'Report Type (Slack or Default)'
+    description: 'Report type: slack, api, or default'
     required: false
     default: 'default'
-  slack-webhook:
-    description: 'If Report Type is Slack, specify the Slack Webhook URL'
+  webhook-url:
+    description: 'Webhook URL for sending reports (required for slack and api report types)'
     required: false
-
+  webhook-token:
+    description: 'Authentication token for webhook (optional). Sent as Bearer token in Authorization header for api report type.'
+    required: false
 
 # Define your outputs here.
 outputs:

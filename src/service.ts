@@ -1,7 +1,49 @@
 import axios from 'axios'
-import { FeatureFlag } from './types'
+import { FeatureFlag, Response } from './types'
 
-const url = 'https://app.launchdarkly.com/api/v2/flags'
+const BASE_URL = 'https://app.launchdarkly.com'
+const API_URL = `${BASE_URL}/api/v2/flags`
+
+const makeRequest = async (
+    url: string,
+    accessToken: string,
+    params?: Record<string, string>
+): Promise<Response> => {
+    const { data } = await axios.get<Response>(url, {
+        headers: {
+            Authorization: accessToken
+        },
+        params
+    })
+
+    return data
+}
+
+const makePaginatedRequest = async (
+    url: string,
+    accessToken: string,
+    params?: Record<string, string>
+): Promise<FeatureFlag[]> => {
+    const flags: FeatureFlag[] = []
+
+    let nextUrl: string | undefined = url
+
+    while (nextUrl) {
+        const response = await makeRequest(nextUrl, accessToken, params)
+
+        if (response.items.length > 0) {
+            flags.push(...response.items)
+        }
+
+        nextUrl = response._links?.next?.href
+            ? `${BASE_URL}${response._links.next.href}`
+            : undefined
+
+        params = undefined
+    }
+
+    return flags
+}
 
 export const getFeatureFlags = async ({
     accessToken,
@@ -14,16 +56,22 @@ export const getFeatureFlags = async ({
     environment: string
     filters?: string
 }): Promise<FeatureFlag[]> => {
-    const { data } = await axios.get<{ items: FeatureFlag[] }>(
-        `${url}/${projectKey}?env=${environment}&archived=false&filter=${filters}&expand=codeReferences`,
-        {
-            headers: {
-                Authorization: accessToken
-            }
-        }
-    )
+    const params: Record<string, string> = {
+        limit: '100',
+        expand: 'evaluation,codeReferences',
+        env: environment,
+        archived: 'false'
+    }
 
-    return data?.items ?? []
+    if (filters) {
+        params.filter = filters
+    }
+
+    return await makePaginatedRequest(
+        `${API_URL}/${projectKey}`,
+        accessToken,
+        params
+    )
 }
 
 export const getFeatureFlagsByMaintainerTeams = async ({
