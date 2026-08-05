@@ -1,64 +1,80 @@
 name: 'LaunchDarkly Outdated Feature Flags Reporter'
-description: 'The action provide the feature flags that might be ready for removal'
+description:
+    'The action provide the feature flags that might be ready for removal'
 author: 'Rufat Khaslarov'
 
 # Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
-  icon: 'heart'
-  color: 'red'
+    icon: 'heart'
+    color: 'red'
 
 # Define your inputs here.
 inputs:
-  access-token:
-    description: 'Launch Darkly Access Token with Read permissions at least'
-    required: true
-  project-key:
-    description: 'Launch Darkly Project Key'
-    required: true
-  environment-key:
-    description: 'Launch Darkly Project Environment'
-    required: true
-  rules-config:
-    description: |
-      Rules configuration in YAML format. Each rule can be enabled/disabled and configured with specific parameters.
-      Example:
-        min-age:
-          days: 30
-        exclude-tags:
-          tags: ['MANUAL_REVIEW']
-        temporary-only: true
-        boolean-only: true
-        unused: true
-        default-only: true
-    required: true
-    default: |
-      min-age:
-        days: 30
-      exclude-tags:
-        tags: ['MANUAL_REVIEW']
-      temporary-only: true
-      boolean-only: true
-      unused: true
-      default-only: true
-  maintainer-teams:
-    description: 'Maintainer teams with assigned feature flags in Launch Darkly'
-    required: false
-  report-type:
-    description: 'Report type: slack, api, or default'
-    required: false
-    default: 'default'
-  webhook-url:
-    description: 'Webhook URL for sending reports (required for slack and api report types)'
-    required: false
-  webhook-token:
-    description: 'Authentication token for webhook (optional). Sent as Bearer token in Authorization header for api report type.'
-    required: false
+    access-token:
+        description: 'Launch Darkly Access Token with Read permissions at least'
+        required: true
+    project-key:
+        description: 'Launch Darkly Project Key'
+        required: true
+    environment-key:
+        description: 'Launch Darkly Project Environment'
+        required: true
+    rules-config:
+        description: |
+            Rules configuration in YAML format. Each rule can be enabled/disabled and configured with specific parameters.
+            Example:
+              min-age:
+                days: 30
+              exclude-tags:
+                tags: ['MANUAL_REVIEW']
+              temporary-only: true
+              boolean-only: true
+              unused: true
+              default-only: true
+        required: true
+        default: |
+            min-age:
+              days: 30
+            exclude-tags:
+              tags: ['MANUAL_REVIEW']
+            temporary-only: true
+            boolean-only: true
+            unused: true
+            default-only: true
+    maintainer-teams:
+        description:
+            'Maintainer teams with assigned feature flags in Launch Darkly'
+        required: false
+    sdk:
+        description:
+            'Filter feature flags by SDK availability. One of: client, mobile,
+            server. Maps to the LaunchDarkly API sdkAvailability filter.'
+        required: false
+    report-type:
+        description: 'Report type: slack, api, or default'
+        required: false
+        default: 'default'
+    webhook-url:
+        description:
+            'Webhook URL for sending reports (required for slack and api report
+            types)'
+        required: false
+    webhook-token:
+        description:
+            'Authentication token for webhook (optional). Sent as Bearer token
+            in Authorization header for api report type.'
+        required: false
+    limit:
+        description:
+            'Maximum number of feature flags to include in the report. If not
+            set, all matching flags are returned.'
+        required: false
 
 # Define your outputs here.
 outputs:
-  feature-flags:
-    description: 'Outdated Feature Flags Entities from Launch Darkly'
+    feature-flags:
+        description: 'Outdated Feature Flags Entities from Launch Darkly'
 
 runs:
-  using: node20
-  main: dist/index.js
+    using: node20
+    main: dist/index.js

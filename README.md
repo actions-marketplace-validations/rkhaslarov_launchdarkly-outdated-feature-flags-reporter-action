@@ -7,10 +7,10 @@
 
 ## Overview
 
-This GitHub Action automates the process of identifying feature flags that
-are ready for removal based on specified criteria.
-It generates a report of such feature flags, which can be sent
-to designated channels such as Slack or a custom API endpoint.
+This GitHub Action automates the process of identifying feature flags that are
+ready for removal based on specified criteria. It generates a report of such
+feature flags, which can be sent to designated channels such as Slack or a
+custom API endpoint.
 
 ## Usage
 
@@ -25,12 +25,13 @@ to designated channels such as Slack or a custom API endpoint.
 
 **Optional:**
 
-- `maintainer-teams`: Comma-separated list of teams responsible for
-  maintaining feature flags
-- `report-type`: Report type - `slack`, `api`, or `default`
-  (default: `default`)
-- `webhook-url`: Webhook URL for sending reports (required for `slack` and
-  `api` report types)
+- `maintainer-teams`: Comma-separated list of teams responsible for maintaining
+  feature flags
+- `sdk`: Filter feature flags by SDK availability. One of `client`,
+  `mobile`, or `server`. Maps to the LaunchDarkly API `sdkAvailability` filter.
+- `report-type`: Report type - `slack`, `api`, or `default` (default: `default`)
+- `webhook-url`: Webhook URL for sending reports (required for `slack` and `api`
+  report types)
 - `webhook-token`: Authentication token for webhook (sent as Bearer token for
   `api` report type)
 
@@ -56,9 +57,9 @@ The `rules-config` parameter accepts YAML format with the following rules:
 
 ```yaml
 min-age:
-  days: 30
+    days: 30
 exclude-tags:
-  tags: []
+    tags: []
 temporary-only: true
 boolean-only: true
 unused: true
@@ -70,8 +71,8 @@ default-only: true
 This action can be triggered on a schedule or manually.
 
 - **Schedule:** It runs on a weekly schedule every Friday at 11:00 AM UTC.
-- **Manual:** You can also trigger the action manually through
-  GitHub's workflow dispatch feature.
+- **Manual:** You can also trigger the action manually through GitHub's workflow
+  dispatch feature.
 
 ## Example Workflows
 
@@ -80,23 +81,23 @@ This action can be triggered on a schedule or manually.
 ```yaml
 name: Feature Flags Ready For Removal
 on:
-  schedule:
-    - cron: "00 11 * * 5"
-  workflow_dispatch:
+    schedule:
+        - cron: '00 11 * * 5'
+    workflow_dispatch:
 
 jobs:
-  send-feature-flags-report:
-    name: Feature Flags
-    runs-on: ubuntu-latest
-    steps:
-      - name: 'Send Report'
-        uses: rkhaslarov/launchdarkly-outdated-feature-flags-reporter-action@v2.0.0
-        with:
-          access-token: ${{ secrets.ACCESS_TOKEN }}
-          project-key: ${{ secrets.PROJECT_KEY }}
-          environment-key: ${{ secrets.LD_ENV }}
-          report-type: 'slack'
-          webhook-url: ${{ secrets.SLACK_WEBHOOK }}
+    send-feature-flags-report:
+        name: Feature Flags
+        runs-on: ubuntu-latest
+        steps:
+            - name: 'Send Report'
+              uses: rkhaslarov/launchdarkly-outdated-feature-flags-reporter-action@v2.0.0
+              with:
+                  access-token: ${{ secrets.ACCESS_TOKEN }}
+                  project-key: ${{ secrets.PROJECT_KEY }}
+                  environment-key: ${{ secrets.LD_ENV }}
+                  report-type: 'slack'
+                  webhook-url: ${{ secrets.SLACK_WEBHOOK }}
 ```
 
 ### Custom API Report
@@ -104,24 +105,24 @@ jobs:
 ```yaml
 name: Feature Flags Ready For Removal
 on:
-  schedule:
-    - cron: "00 11 * * 5"
-  workflow_dispatch:
+    schedule:
+        - cron: '00 11 * * 5'
+    workflow_dispatch:
 
 jobs:
-  send-feature-flags-report:
-    name: Feature Flags
-    runs-on: ubuntu-latest
-    steps:
-      - name: 'Send Report'
-        uses: rkhaslarov/launchdarkly-outdated-feature-flags-reporter-action@v2.0.0
-        with:
-          access-token: ${{ secrets.ACCESS_TOKEN }}
-          project-key: ${{ secrets.PROJECT_KEY }}
-          environment-key: ${{ secrets.LD_ENV }}
-          report-type: 'api'
-          webhook-url: ${{ secrets.API_URL }}
-          webhook-token: ${{ secrets.API_TOKEN }}
+    send-feature-flags-report:
+        name: Feature Flags
+        runs-on: ubuntu-latest
+        steps:
+            - name: 'Send Report'
+              uses: rkhaslarov/launchdarkly-outdated-feature-flags-reporter-action@v2.0.0
+              with:
+                  access-token: ${{ secrets.ACCESS_TOKEN }}
+                  project-key: ${{ secrets.PROJECT_KEY }}
+                  environment-key: ${{ secrets.LD_ENV }}
+                  report-type: 'api'
+                  webhook-url: ${{ secrets.API_URL }}
+                  webhook-token: ${{ secrets.API_TOKEN }}
 ```
 
 ### Custom Rules Configuration
@@ -131,72 +132,72 @@ You can customize rules by providing YAML configuration:
 ```yaml
 name: Feature Flags Ready For Removal
 on:
-  schedule:
-    - cron: "00 11 * * 5"
-  workflow_dispatch:
+    schedule:
+        - cron: '00 11 * * 5'
+    workflow_dispatch:
 
 jobs:
-  send-feature-flags-report:
-    name: Feature Flags
-    runs-on: ubuntu-latest
-    steps:
-      # Example 1: Only check for unused flags (skip all filters)
-      - name: 'Send Report - Only Unused Flags'
-        uses: rkhaslarov/launchdarkly-outdated-feature-flags-reporter-action@v2.0.0
-        with:
-          access-token: ${{ secrets.ACCESS_TOKEN }}
-          project-key: ${{ secrets.PROJECT_KEY }}
-          environment-key: ${{ secrets.LD_ENV }}
-          report-type: 'slack'
-          webhook-url: ${{ secrets.SLACK_WEBHOOK }}
-          rules-config: |
-            min-age:
-              days: 0
-            exclude-tags:
-              tags: []
-            temporary-only: false
-            boolean-only: false
-            unused: true
-            default-only: false
-      
-      # Example 2: Old flags with custom age threshold and excluded tags
-      - name: 'Send Report - Old Flags'
-        uses: rkhaslarov/launchdarkly-outdated-feature-flags-reporter-action@v2.0.0
-        with:
-          access-token: ${{ secrets.ACCESS_TOKEN }}
-          project-key: ${{ secrets.PROJECT_KEY }}
-          environment-key: ${{ secrets.LD_ENV }}
-          report-type: 'slack'
-          webhook-url: ${{ secrets.SLACK_WEBHOOK }}
-          rules-config: |
-            min-age:
-              days: 90
-            exclude-tags:
-              tags: ['KEEP', 'MANUAL_REVIEW']
-            temporary-only: true
-            boolean-only: true
-            unused: true
-            default-only: true
-      
-      # Example 3: Only temporary boolean flags with default variation
-      - name: 'Send Report - Temporary Boolean Flags'
-        uses: rkhaslarov/launchdarkly-outdated-feature-flags-reporter-action@v2.0.0
-        with:
-          access-token: ${{ secrets.ACCESS_TOKEN }}
-          project-key: ${{ secrets.PROJECT_KEY }}
-          environment-key: ${{ secrets.LD_ENV }}
-          report-type: 'slack'
-          webhook-url: ${{ secrets.SLACK_WEBHOOK }}
-          maintainer-teams: 'team-a,team-b'
-          rules-config: |
-            min-age:
-              days: 30
-            exclude-tags:
-              tags: []
-            temporary-only: true
-            boolean-only: true
-            unused: false
-            default-only: true
+    send-feature-flags-report:
+        name: Feature Flags
+        runs-on: ubuntu-latest
+        steps:
+            # Example 1: Only check for unused flags (skip all filters)
+            - name: 'Send Report - Only Unused Flags'
+              uses: rkhaslarov/launchdarkly-outdated-feature-flags-reporter-action@v2.0.0
+              with:
+                  access-token: ${{ secrets.ACCESS_TOKEN }}
+                  project-key: ${{ secrets.PROJECT_KEY }}
+                  environment-key: ${{ secrets.LD_ENV }}
+                  report-type: 'slack'
+                  webhook-url: ${{ secrets.SLACK_WEBHOOK }}
+                  rules-config: |
+                      min-age:
+                        days: 0
+                      exclude-tags:
+                        tags: []
+                      temporary-only: false
+                      boolean-only: false
+                      unused: true
+                      default-only: false
+
+            # Example 2: Old flags with custom age threshold and excluded tags
+            - name: 'Send Report - Old Flags'
+              uses: rkhaslarov/launchdarkly-outdated-feature-flags-reporter-action@v2.0.0
+              with:
+                  access-token: ${{ secrets.ACCESS_TOKEN }}
+                  project-key: ${{ secrets.PROJECT_KEY }}
+                  environment-key: ${{ secrets.LD_ENV }}
+                  report-type: 'slack'
+                  webhook-url: ${{ secrets.SLACK_WEBHOOK }}
+                  rules-config: |
+                      min-age:
+                        days: 90
+                      exclude-tags:
+                        tags: ['KEEP', 'MANUAL_REVIEW']
+                      temporary-only: true
+                      boolean-only: true
+                      unused: true
+                      default-only: true
+
+            # Example 3: Only temporary boolean flags with default variation
+            - name: 'Send Report - Temporary Boolean Flags'
+              uses: rkhaslarov/launchdarkly-outdated-feature-flags-reporter-action@v2.0.0
+              with:
+                  access-token: ${{ secrets.ACCESS_TOKEN }}
+                  project-key: ${{ secrets.PROJECT_KEY }}
+                  environment-key: ${{ secrets.LD_ENV }}
+                  report-type: 'slack'
+                  webhook-url: ${{ secrets.SLACK_WEBHOOK }}
+                  maintainer-teams: 'team-a,team-b'
+                  rules-config: |
+                      min-age:
+                        days: 30
+                      exclude-tags:
+                        tags: []
+                      temporary-only: true
+                      boolean-only: true
+                      unused: false
+                      default-only: true
 ```
 
 ## API Report Format
@@ -206,34 +207,34 @@ request with the following payload format:
 
 ```json
 [
-  {
-    "maintainerTeam": {
-      "key": "team-key-1",
-      "name": "Team Name 1"
+    {
+        "maintainerTeam": {
+            "key": "team-key-1",
+            "name": "Team Name 1"
+        },
+        "featureFlags": [
+            {
+                "key": "flag-key-1",
+                "creationDate": "2024-01-15T10:30:00Z",
+                "createdAgo": "9 months ago",
+                "link": "https://app.launchdarkly.com/project/env/features/flag-key-1"
+            }
+        ]
     },
-    "featureFlags": [
-      {
-        "key": "flag-key-1",
-        "creationDate": "2024-01-15T10:30:00Z",
-        "createdAgo": "9 months ago",
-        "link": "https://app.launchdarkly.com/project/env/features/flag-key-1"
-      }
-    ]
-  },
-  {
-    "maintainerTeam": {
-      "key": "team-key-2",
-      "name": "Team Name 2"
-    },
-    "featureFlags": [
-      {
-        "key": "flag-key-2",
-        "creationDate": "2024-02-20T14:20:00Z",
-        "createdAgo": "8 months ago",
-        "link": "https://app.launchdarkly.com/project/env/features/flag-key-2"
-      }
-    ]
-  }
+    {
+        "maintainerTeam": {
+            "key": "team-key-2",
+            "name": "Team Name 2"
+        },
+        "featureFlags": [
+            {
+                "key": "flag-key-2",
+                "creationDate": "2024-02-20T14:20:00Z",
+                "createdAgo": "8 months ago",
+                "link": "https://app.launchdarkly.com/project/env/features/flag-key-2"
+            }
+        ]
+    }
 ]
 ```
 

@@ -36,6 +36,7 @@ export type FeatureFlag = {
     name: string
     tags: string[]
     temporary: boolean
+    variations: { value: unknown; _id: string; name?: string }[]
     environments: Record<string, Environment>
     codeReferences?: {
         items: { sourceLink: string }[]

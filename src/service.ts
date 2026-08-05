@@ -4,6 +4,14 @@ import { FeatureFlag, Response } from './types'
 const BASE_URL = 'https://app.launchdarkly.com'
 const API_URL = `${BASE_URL}/api/v2/flags`
 
+export const buildFilters = (parts: string[]): string =>
+    parts
+        .filter(part => {
+            const [, value] = part.split(':')
+            return Boolean(value?.trim())
+        })
+        .join(',')
+
 const makeRequest = async (
     url: string,
     accessToken: string,
@@ -78,12 +86,14 @@ export const getFeatureFlagsByMaintainerTeams = async ({
     accessToken,
     projectKey,
     environment,
-    maintainerTeams
+    maintainerTeams,
+    sdkAvailability
 }: {
     accessToken: string
     projectKey: string
     environment: string
     maintainerTeams: string[]
+    sdkAvailability?: string
 }): Promise<FeatureFlag[]> => {
     const response = await Promise.all(
         maintainerTeams.map(
@@ -92,7 +102,10 @@ export const getFeatureFlagsByMaintainerTeams = async ({
                     accessToken,
                     projectKey,
                     environment,
-                    filters: `maintainerTeamKey:${team}`
+                    filters: buildFilters([
+                        `maintainerTeamKey:${team}`,
+                        `sdkAvailability:${sdkAvailability}`
+                    ])
                 })
         )
     )
